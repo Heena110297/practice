@@ -19,7 +19,7 @@ public class FrontController{
 
 	@RequestMapping(value = "hello", method = RequestMethod.GET)
 	public String getHello(HttpServletRequest request) {
-		return "Hiiiiiiiii, Have a great day ahead --> message from dev";
+		return "Hiiiiiiiii, Have a great day ahead --> message from prod";
 	}
 
 }
