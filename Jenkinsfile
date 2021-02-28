@@ -89,11 +89,11 @@ pipeline{
 				bat 'docker run -it --name demo-application -d -p 6200:8080 heenamittal11/demo-application:%BUILD_NUMBER%'
 			}
 		 }
-		 
+	}
 		 post{
 		  always{
 		    junit 'target/surefire-reports/*.xml'
 		  }
-		 }
+		 
 	}
 }
