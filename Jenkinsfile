@@ -45,7 +45,7 @@ pipeline{
 					id:'deployer',
 					serverId: 'demoArtifactory',
 					releaseRepo: 'demoArtifactory',
-					snapshotRepo: 'dempArtifactory'
+					snapshotRepo: 'demoArtifactory'
 				)
 				rtMavenRun(
 					pom: 'pom.xml',
