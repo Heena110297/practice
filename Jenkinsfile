@@ -23,15 +23,8 @@ pipeline{
 		stage('Build'){
 			steps{
 				script{
+					echo "build in "  + scmVars.GIT_BRANCH
 					bat "mvn install"
-				}
-			}
-		}
-		stage('Unit Testing'){
-			steps{
-				script{
-					echo "build in " scmVars.GIT_BRANCH
-					bat "mvn test"
 				}
 			}
 		}
