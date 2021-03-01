@@ -16,10 +16,4 @@ public class FrontController{
 		ModelAndView model = new ModelAndView("home");
 		return model;
 	}
-
-	@RequestMapping(value = "hello", method = RequestMethod.GET)
-	public String getHello(HttpServletRequest request) {
-		return "Hiiiiiiiii, Have a great day ahead --> message from dev";
-	}
-
 }
