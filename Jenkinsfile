@@ -6,20 +6,25 @@ pipeline{
 	}
 	options{
 		timestamps()
-		timeout(time: 1, unit: 'HOURS')
+		timeout( time: 1, unit: 'HOURS')
 		skipDefaultCheckout()
-		buildDiscarder(logRotator(daysToKeepStr: '10', numToKeepStr:'10'))
+		buildDiscarder(logRotator(daysToKeepStr: '10' , numToKeepStr: '10'))
 		disableConcurrentBuilds()
 	}
 	stages{
 		stage('Checkout'){
 			steps{
-			script{
-			scmVars = checkout scm
-				echo scmVars.GIT_BRANCH
-			}
+				script{
+					scmVars = checkout scm
+					echo scmVars.GIT_BRANCH
+				}
 			}
 		}
-			       
+		stage('build'){
+			steps{
+				echo "Build in %scmVars.GIT_BRANCH%"
+				bat "mvn install"
+			}
+		}
 	}
 }
