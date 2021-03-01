@@ -37,7 +37,7 @@ pipeline{
 				}
 			}
 		}
-		stage('Upload to Artifactory"){
+		stage('Upload to Artifactory'){
 		      steps{
 			      rtMavenDeployer(
 				      id:'deployer',
