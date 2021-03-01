@@ -25,6 +25,7 @@ pipeline{
 		}
 		stage('Build'){
 			steps{
+				echo scmVars.GIT_BRANCH
 				bat "mvn install"
 			}
 		}
