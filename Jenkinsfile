@@ -1,51 +1,52 @@
 def scmVars
 pipeline{
 	agent any
-    tools{
-	 maven 'Maven3'
+	environment{
+		GIT_BRANCH= '$params.Environment}'
+	}
+	tools{
+		maven 'Maven3'
 	}
 	options{
-	timestamps()
-	timeout(time: 1, unit: 'HOURS')
-	skipDefaultCheckout()
-	buildDiscarder(logRotator(daysToKeepStr: '10', numToKeepStr:'10'))
-	disableConcurrentBuilds()
+		timestamps()
+		timeout(time: 1, unit: 'HOURS')
+		skipDefaultCheckout()
+		buildDiscarder(logRotator(daysToKeepStr: '10', numToKeepStr: '10'))
+		disableConcurrentBuilds()
 	}
 	stages{
-		 stage('Checkout'){
+		stage('Checkout'){
 			steps{
 				script{
 					scmVars = checkout scm
 					echo scmVars.GIT_BRANCH
 				}
-		    }
-		 }
-		 stage('build'){
+			}
+		}
+		stage('Build'){
 			steps{
-				echo 'build in ${scmVars.GIT_BRANCH} branch'
 				bat "mvn install"
 			}
-		 }
-		 stage('Unit Testing'){
+		}
+		stage('Unit Testing'){
 			steps{
-				echo 'Unit testing in ${scmVars.GIT_BRANCH} branch'
 				bat "mvn test"
 			}
-		 }
-		 stage('Sonar Analysis'){
+		}
+		stage('Sonar Analysis'){
 			steps{
 				withSonarQubeEnv("Test_Sonar"){
 					bat "mvn sonar:sonar"
 				}
 			}
-		 }
-		 stage('Upload to artifactory'){
+		}
+		stage('Upload to Artifactory'){
 			steps{
 				rtMavenDeployer(
 					id:'deployer',
-					serverId: 'demoArtifactory',
-					releaseRepo: 'demoArtifactory',
-					snapshotRepo: 'demoArtifactory'
+					serverId:'demoArtifactory',
+					releaseRepo:'demoArtifactory',
+					snapshotRepo:'demoArtifactory'
 				)
 				rtMavenRun(
 					pom: 'pom.xml',
@@ -53,47 +54,59 @@ pipeline{
 					deployerId: 'deployer'
 				)
 				rtPublishBuildInfo(
-					serverId: 'demoArtifactory'
+					serverId:'demoArtifactory'
 				)
 			}
-		 }
-		 stage('Docker Image'){
+		}
+		stage('Build Docker Image'){
 			steps{
 				bat 'docker build --network=host --no-cache -t heenamittal11/demo-application:%BUILD_NUMBER% -f Dockerfile .'
 			}
-		 }
-		 
-		 stage('Push to DTR'){
+		}
+		stage('Push to DTR'){
 			steps{
 				bat 'docker login -u heenamittal11 -p Docker@11'
 				bat 'docker push heenamittal11/demo-application:%BUILD_NUMBER%'
 			}
-		 }
-		 
-		 stage('Stop running Container'){
+		}
+		stage('Stop Running Container'){
 			steps{
 				bat '''
 					for /f %%i in ('docker ps -aqf "name=^demo-application"') do set containerId=%%i
-				    echo %containerId%
+					echo %containerId%
 					If "%containerId%" == "" (
-						echo "No Container Running"
-					)else (
-					  docker stop %containerId%
-					  docker rm -f %containerId%
+						echo "No Container running"
+					)
+					else(
+						docker stop %containerId%
+						docker rm -f %containerId%
 					)
 				'''
 			}
-		 }
-		 stage('Docker Deployment'){
+		}
+		stage('Docker Deployment'){
 			steps{
 				bat 'docker run -it --name demo-application -d -p 6200:8080 heenamittal11/demo-application:%BUILD_NUMBER%'
 			}
-		 }
+		}
 	}
-		 post{
-		  always{
-		    junit 'target/surefire-reports/*.xml'
-		  }
-		 }
-	
+	post{
+		always{
+			junit 'target/surefire-reports/*.xml'
+		}
+		failure{
+			mail body:"<b>FAILURE</b> <br><br> Job Name: ${env.JOB_NAME}<br>BUILD NUMBER: ${env.BUILD_NUMBER}<br>BUILD URL: ${env.BUILD_URL}",
+			charset: 'UTF-8',
+			mimeType: 'text/html',
+			to: "heena.mittal@nagarro.com",
+			subject: "BUILD FAILURE --> ${env.JOB_NAME}"
+		}
+		success{
+			mail body:"<b>SUCCESS</b> <br><br> Job Name: ${env.JOB_NAME}<br>BUILD NUMBER: ${env.BUILD_NUMBER}<br>BUILD URL: ${env.BUILD_URL}",
+			charset: 'UTF-8',
+			mimeType: 'text/html',
+			to: "heena.mittal@nagarro.com",
+			subject: "BUILD SUCCESS --> ${env.JOB_NAME}"
+		}
+	}
 }
