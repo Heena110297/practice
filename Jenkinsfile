@@ -92,29 +92,17 @@ pipeline{
 			junit 'target/surefire-reports/*.xml'
 		}
 		failure{
-			mail body:"<b>FAILURE</b>
-			<br><br>
-				Job Name:  ${env.JOB_NAME}
-			<br>
-				BUILD NUMBER: ${env.BUILD_NUMBER}
-			<br>
-				BUILD URL: ${env.BUILD_URL}",
+			mail body:"<b>FAILURE</b> <br><br> Job Name: ${env.JOB_NAME}<br>BUILD NUMBER: ${env.BUILD_NUMBER}<br>BUILD URL: ${env.BUILD_URL}",
 			charset: 'UTF-8',
 			mimeType: 'text/html',
-			to: "heena.mittal@nagarro.com"
+			to: "heena.mittal@nagarro.com",
 			subject: BUILD FAILURE --> ${env.JOB_NAME}
 		}
 		success{
-			mail body:"<b>SUCCESS</b>
-			<br><br>
-				Job Name:  ${env.JOB_NAME}
-			<br>
-				BUILD NUMBER: ${env.BUILD_NUMBER}
-			<br>
-				BUILD URL: ${env.BUILD_URL}",
+			mail body:"<b>SUCCESS</b> <br><br> Job Name: ${env.JOB_NAME}<br>BUILD NUMBER: ${env.BUILD_NUMBER}<br>BUILD URL: ${env.BUILD_URL}",
 			charset: 'UTF-8',
 			mimeType: 'text/html',
-			to: "heena.mittal@nagarro.com"
+			to: "heena.mittal@nagarro.com",
 			subject: BUILD SUCCESS --> ${env.JOB_NAME}
 		}
 	}
