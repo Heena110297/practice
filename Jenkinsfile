@@ -55,6 +55,18 @@ pipeline{
 			      )
 		      }
 		}
+		stage('Build Image'){
+			steps{
+			bat 'docker build --network=host --no-cache -t heenamittal11/demo-application:%BUILD_NUMBER% -f Dockerfile .'
+			}
+		}
+		stage('Push to DTR'){
+			steps{
+				bat 'docker login -u heenamittal11 -p Docker@11'
+				bat 'docker push heenamittal11/demo-application:%BUILD_NUMBER%'
+			}
+		}
+		
 	}
 	
 }
