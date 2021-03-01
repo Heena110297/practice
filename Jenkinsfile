@@ -66,6 +66,30 @@ pipeline{
 				bat 'docker push heenamittal11/demo-application:%BUILD_NUMBER%'
 			}
 		}
-		
+		stage('Stop Running Container'){
+			steps{
+				bat '''
+					for /f %%i in ('docker ps -aqf name="^demo-application') do set containerId=%%i
+					echo %containerId%
+					If "%containerId%" == ""(
+						echo "No Container running"
+					)
+					else(
+						docker stop %containerId%
+						docker rm -f %containerId%
+					)
+				'''
+			}
+		}
+		stage('Docker Deployment'){
+			steps{
+				bat 'docker run -it --name demo-application -d -p 6200:8080 heenamittal11/demo-application:%BUILD_NUMBER%'
+			}
+		}
+	}
+	post{
+		always{
+			junit 'target/surefire-reports/*.xml'
+		}
 	}
 }
