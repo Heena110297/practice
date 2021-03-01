@@ -6,61 +6,55 @@ pipeline{
 	}
 	options{
 		timestamps()
-		timeout(time: 1, unit:'HOURS')
+		timeout(time: 1, unit: 'HOURS')
 		skipDefaultCheckout()
-		buildDiscarder(logRotator(daysToKeepStr:'10',numToKeepStr:'10'))
+		buildDiscarder(logRotator(daysToKeepStr:'10', numToKeepStr: '10'))
 		disableConcurrentBuilds()
 	}
 	stages{
 		stage('Checkout'){
 			steps{
 				script{
-					scmVars = checkout scm
-					echo scmVars.GIT_BRANCH
+			                scmVars = checkout scm
+			 		echo scmVars.GIT_BRANCH
 				}
 			}
 		}
 		stage('Build'){
 			steps{
-				script{
-					echo "build in "  + scmVars.GIT_BRANCH
-					bat "mvn install"
-				}
+			       bat "mvn install"      
 			}
 		}
 		stage('Unit Testing'){
 			steps{
-				script{
-					bat "mvn test"
+			       bat "mvn test"      
+			}
+		}
+		stage('Sonar Analysis'){
+			steps{
+				withSonarQubeEnv("Test_Sonar"){
+					bat "mvn sonar:sonar"
 				}
 			}
 		}
-		stage('SonarQube Analysis'){
-			steps{
-				script{
-					withSonarQubeEnv("Test_Sonar"){
-						bat "mvn sonar:sonar"
-					}
-				}
-			}
-		}
-		stage('Upload to Artifactory'){
-			steps{
-				rtMavenDeployer(
-					id:'deployer',
-					serverId:'demoArtifactory',
-					releaseRepo:'demoArtifactory',
-					snapshotRepo:'demoArtifactory'
-				)
-				rtMavenRun(
-					pom:'pom.xml',
-					goals:'clean install',
-					deployerId:'deployer'
-				)
-				rtPublishBuildInfo(
-					serverId:'demoArtifactory'
-				)
-			}
+		stage('Upload to Artifactory"){
+		      steps{
+			      rtMavenDeployer(
+				      id:'deployer',
+				      serverId:'demoArtifactory',
+				      snapshotRepo:'demoArtifactory',
+				      releaseRepo:'demoArtifactory'
+			      )
+			      rtMavenRun(
+				      pom:'pom.xml',
+				      goals:'clean install',
+				      deployerId:'deployer'
+			      )
+			      rtPublishBuildInfo(
+				      serverId:'demoArtifactory'
+			      )
+		      }
 		}
 	}
+	
 }
