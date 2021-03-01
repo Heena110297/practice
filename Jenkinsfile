@@ -101,7 +101,7 @@ pipeline{
 				BUILD URL: ${env.BUILD_URL}",
 			charset: 'UTF-8',
 			mimeType: 'text/html',
-			to: heena.mittal@nagarro.com
+			to: "heena.mittal@nagarro.com"
 			subject: BUILD FAILURE --> ${env.JOB_NAME}
 		}
 		success{
@@ -114,7 +114,7 @@ pipeline{
 				BUILD URL: ${env.BUILD_URL}",
 			charset: 'UTF-8',
 			mimeType: 'text/html',
-			to: heena.mittal@nagarro.com
+			to: "heena.mittal@nagarro.com"
 			subject: BUILD SUCCESS --> ${env.JOB_NAME}
 		}
 	}
