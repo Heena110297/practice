@@ -1,6 +1,9 @@
 def scmVars
 pipeline{
 	agent any
+	environment{
+		GIT_BRANCH= '$params.Environment}'
+	}
 	tools{
 		maven 'Maven3'
 	}
