@@ -2,7 +2,7 @@ def scmVars
 pipeline{
 	agent:any
 	tools:{
-		maven:'Maven3'
+		maven 'Maven3'
 	}
 	options{
 		timestamps()
