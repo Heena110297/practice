@@ -69,7 +69,7 @@ pipeline{
 		stage('Stop Running Container'){
 			steps{
 				bat '''
-					for /f %%i in ('docker ps -aqf name="^demo-application') do set containerId=%%i
+					for /f %%i in ('docker ps -aqf name="^demo-application"') do set containerId=%%i
 					echo %containerId%
 					If "%containerId%" == ""(
 						echo "No Container running"
