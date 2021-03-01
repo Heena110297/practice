@@ -44,5 +44,23 @@ pipeline{
 				}
 			}
 		}
+		stage('Upload to Artifactory'){
+			steps{
+				rtMavenDeployer{
+					id:'deployer'
+					serverId:'demoArtifactory'
+					releaseRepo:'demoArtifactory'
+					snapshotRepo:'demoArtifactory'
+				}
+				rtMavenRun{
+					pom:'pom.xml'
+					goals:'clean install'
+					deployerId:'deployer'
+				}
+				rtPublishBuildInfo{
+					serverId:'demoArtifactory'
+				}
+			}
+		}
 	}
 }
