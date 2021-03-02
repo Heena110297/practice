@@ -1,17 +1,14 @@
 def scmVars
 pipeline{
 	agent any
-	environment{
-		GIT_BRANCH= '${params.Environment}'
-	}
 	tools{
 		maven 'Maven3'
 	}
 	options{
 		timestamps()
-		timeout(time: 1, unit: 'HOURS')
+		timeout(time: 1, unit:'HOURS')
 		skipDefaultCheckout()
-		buildDiscarder(logRotator(daysToKeepStr: '10', numToKeepStr: '10'))
+		buildDiscarder(logRotator(daysTokeepStr:'10', numToKeepStr: '10'))
 		disableConcurrentBuilds()
 	}
 	stages{
@@ -19,7 +16,6 @@ pipeline{
 			steps{
 				script{
 					scmVars = checkout scm
-					echo scmVars.GIT_BRANCH
 				}
 			}
 		}
@@ -35,7 +31,7 @@ pipeline{
 		}
 		stage('Sonar Analysis'){
 			steps{
-				withSonarQubeEnv("Test_Sonar"){
+				withSOnarQubeEnv("Test_Sonar"){
 					bat "mvn sonar:sonar"
 				}
 			}
@@ -44,13 +40,13 @@ pipeline{
 			steps{
 				rtMavenDeployer(
 					id:'deployer',
-					serverId:'demoArtifactory',
-					releaseRepo:'demoArtifactory',
+					serverId:'demoArtifactory'
 					snapshotRepo:'demoArtifactory'
+					releaseRepo:'demoArtifactory'
 				)
 				rtMavenRun(
-					pom: 'pom.xml',
-					goals: 'clean install',
+					pom:'pom.xml',
+					goals:'clean install',
 					deployerId: 'deployer'
 				)
 				rtPublishBuildInfo(
@@ -58,55 +54,85 @@ pipeline{
 				)
 			}
 		}
-		stage('Build Docker Image'){
+		stage('Build Image'){
 			steps{
-				bat 'docker build --network=host --no-cache -t heenamittal11/demo-application:%BUILD_NUMBER% -f Dockerfile .'
+				script{
+					if(scmVars.GIT_BRANCH == 'origin/dev'){
+						bat 'docker build --network=host --no-cache -t heenamittal11/demo-application:%BUILD_NUMBER% -f Dockerfile .'
+					}
+					else if(scmVars.GIT_BRANCH == 'origin/prod-new'){
+						bat 'docker build --network=host --no-cache -t heenamittal11/demo-application-prod:%BUILD_NUMBER% -f Dockerfile .'
+					}
+				}
 			}
 		}
 		stage('Push to DTR'){
 			steps{
-				bat 'docker login -u heenamittal11 -p Docker@11'
-				bat 'docker push heenamittal11/demo-application:%BUILD_NUMBER%'
+				script{
+					bat 'docker login -u heenamittal11 -p Docker@11'
+					if(scmVars.GIT_BRANCH == 'origin/dev'){
+						bat 'docker push heenamittal11/demo-application:%BUILD_NUMBER%'
+					}
+					else if(scmVars.GIT_BRANCH == 'origin/prod-new'){
+						bat 'docker push heenamittal11/demo-application-prod:%BUILD_NUMBER%'
+					}
+				}
 			}
 		}
 		stage('Stop Running Container'){
 			steps{
-				bat '''
-					for /f %%i in ('docker ps -aqf "name=^demo-application"') do set containerId=%%i
-					echo %containerId%
-					If "%containerId%" == "" (
-						echo "No Container running"
-					)
-					else(
-						docker stop %containerId%
+				script{
+					if(scmVars.GIT_BRANCH == 'origin/dev'){
+						tagname='demo-application'
+					}
+					else if(scmVars.GIT_BRANCH == 'origin/prod-new'){
+						tagname='demo-application-prod'
+					}
+					bat '''
+					for /f %%i in 'docker ps -aqf "name=^${tagname}"' do set containerId = %%i
+					    If "%containerId%" == "" (
+					    	echo "no Running Container"
+					    )
+					    else(
+					    	docker stop %containerId%
 						docker rm -f %containerId%
-					)
-				'''
+					    )
+					     
+			                '''
+				}
 			}
 		}
-		stage('Docker Deployment'){
+		stage("Docker Deployment"){
 			steps{
-				bat 'docker run -it --name demo-application -d -p 6200:8080 heenamittal11/demo-application:%BUILD_NUMBER%'
+				script{
+					if(scmVars.GIT_BRANCH == 'origin/dev'){
+						bat 'docker run -it --name demo-application -d -p 6200:8080 heenamittal11/demo-application:%BUILD_NUMBER%'
+					}
+					else if(scmVars.GIT_BRANCH == 'origin/prod-new'){
+						bat 'docker run -it --name demo-application-prod -d -p 6300:8080 heenamittal11/demo-application-prod:%BUILD_NUMBER%'
+					}
+				}
 			}
 		}
 	}
 	post{
 		always{
 			junit 'target/surefire-reports/*.xml'
-		}
-		failure{
-			mail body:"<b>FAILURE</b> <br><br> Job Name: ${env.JOB_NAME}<br>BUILD NUMBER: ${env.BUILD_NUMBER}<br>BUILD URL: ${env.BUILD_URL}",
-			charset: 'UTF-8',
-			mimeType: 'text/html',
-			to: "heena.mittal@nagarro.com",
-			subject: "BUILD FAILURE --> ${env.JOB_NAME}"
+		
 		}
 		success{
-			mail body:"<b>SUCCESS</b> <br><br> Job Name: ${env.JOB_NAME}<br>BUILD NUMBER: ${env.BUILD_NUMBER}<br>BUILD URL: ${env.BUILD_URL}",
-			charset: 'UTF-8',
-			mimeType: 'text/html',
-			to: "heena.mittal@nagarro.com",
-			subject: "BUILD SUCCESS --> ${env.JOB_NAME}"
+			mail body:"<br>JOB_NAME: ${env.JOB_NAME}<br>BUILD_NUMBER: ${env.BUILD_NUMBER}<br> BUILD_URL: ${env.BUILD_URL}",
+			     mimeType:"text/html",
+			     charset:"UTF-8",
+			     subject: "SUCCESS --> ${env.JOB_NAME}",
+			     to:"heena.mittal@nagarro.com",
+		}
+		failure{
+			mail body:"<br>JOB_NAME: ${env.JOB_NAME}<br>BUILD_NUMBER: ${env.BUILD_NUMBER}<br> BUILD_URL: ${env.BUILD_URL}",
+			     mimeType:"text/html",
+			     charset:"UTF-8",
+			     subject: "Failure --> ${env.JOB_NAME}",
+			     to:"heena.mittal@nagarro.com",
 		}
 	}
 }
