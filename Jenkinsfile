@@ -83,14 +83,8 @@ pipeline{
 			steps{
 				script{
 					if(scmVars.GIT_BRANCH == 'origin/dev'){
-						tagname='demo-application'
-					}
-					else if(scmVars.GIT_BRANCH == 'origin/prod-new'){
-						tagname='demo-application-prod'
-					}
-					bat '''
-					echo %tagname%
-					for /f %%i in ('docker ps -aqf "name=^%tagname%"') do set containerId = %%i
+						bat '''
+					for /f %%i in ('docker ps -aqf "name=^demo-application"') do set containerId = %%i
 					    echo %containerId%
 					    If "%containerId%" == "" (
 					    	echo "no Running Container"
@@ -100,6 +94,20 @@ pipeline{
 					    )
 					     
 			                '''
+					}
+					else if(scmVars.GIT_BRANCH == 'origin/prod-new'){
+						bat '''
+					for /f %%i in ('docker ps -aqf "name=^demo-application-prod"') do set containerId = %%i
+					    echo %containerId%
+					    If "%containerId%" == "" (
+					    	echo "no Running Container"
+					    ) else (
+					    	docker stop %containerId%
+						docker rm -f %containerId%
+					    )
+					     
+			                '''
+					}
 				}
 			}
 		}
