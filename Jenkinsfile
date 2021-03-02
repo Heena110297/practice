@@ -125,14 +125,14 @@ pipeline{
 			     mimeType:"text/html",
 			     charset:"UTF-8",
 			     subject: "SUCCESS --> ${env.JOB_NAME}",
-			     to:"heena.mittal@nagarro.com",
+			     to:"heena.mittal@nagarro.com"
 		}
 		failure{
 			mail body:"<br>JOB_NAME: ${env.JOB_NAME}<br>BUILD_NUMBER: ${env.BUILD_NUMBER}<br> BUILD_URL: ${env.BUILD_URL}",
 			     mimeType:"text/html",
 			     charset:"UTF-8",
 			     subject: "Failure --> ${env.JOB_NAME}",
-			     to:"heena.mittal@nagarro.com",
+			     to:"heena.mittal@nagarro.com"
 		}
 	}
 }
