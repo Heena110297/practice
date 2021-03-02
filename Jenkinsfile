@@ -89,8 +89,8 @@ pipeline{
 						tagname='demo-application-prod'
 					}
 					bat '''
-					echo tagname
-					for /f %%i in ('docker ps -aqf "name=^${tagname}"') do set containerId = %%i
+					echo %tagname%
+					for /f %%i in ('docker ps -aqf "name=^%tagname%"') do set containerId = %%i
 					    echo %containerId%
 					    If "%containerId%" == "" (
 					    	echo "no Running Container"
