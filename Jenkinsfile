@@ -94,8 +94,7 @@ pipeline{
 					    echo %containerId%
 					    If "%containerId%" == "" (
 					    	echo "no Running Container"
-					    )
-					    else(
+					    ) else (
 					    	docker stop %containerId%
 						docker rm -f %containerId%
 					    )
