@@ -40,8 +40,8 @@ pipeline{
 			steps{
 				rtMavenDeployer(
 					id:'deployer',
-					serverId:'demoArtifactory'
-					snapshotRepo:'demoArtifactory'
+					serverId:'demoArtifactory',
+					snapshotRepo:'demoArtifactory',
 					releaseRepo:'demoArtifactory'
 				)
 				rtMavenRun(
